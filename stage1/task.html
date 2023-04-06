@@ -1,0 +1,81 @@
+[TITLE]Practice 3155613[/TITLE] <h5>Description</h5><p>Blockchain has a simple interpretation: it's just a chain of
+    blocks. It represents a sequence of data that you can't break in the middle; you can only append new data at the end
+    of it. All the blocks in the blockchain are chained together.</p><p>Check out <a
+        href="https://www.youtube.com/watch?v=bBC-nXj3Ng4" rel="noopener noreferrer nofollow" target="_blank">this great
+    video about the blockchain</a>. It uses a different approach to reach the final result of the project, which is
+    cryptocurrencies, but it explains the blockchain pretty well.<br><br>To be called a blockchain, every block must
+    include the <strong>hash of the previous block</strong>. Other fields of the block are optional and can store
+    various information. The hash of the block is <strong>the hash of all fields of a block</strong>. So, you can just
+    create a string containing every element of a block and then get the hash of this string.<br><br>Note that if you
+    change one block in the middle, the hash of this block will also change. and the next block in the chain would no
+    longer contain the hash of the previous block. Therefore, it’s easy to check that the chain is invalid.</p><h5>
+    Objectives</h5><p>In the first stage, you need to implement such a blockchain. In addition to storing the <em>hash
+    of the previous block</em>, every block must also have a unique and sequential <em>id</em> represented by an <code>int</code> and
+    the newly calculated <em>hash of the block</em>.</p><p>The chain starts with the <strong>Genesis Block</strong>
+    with <strong>id=1</strong>, which marks the beginning of the blockchain and sets the foundation for all subsequent
+    blocks. You should implement an independent function that creates the Genesis Block, and since the Genesis Block
+    does not have a preceding block, its hash of the previous block must be <code>0</code>.</p><p>Apart from the id and
+    hash of the blocks, the Genesis Block and every subsequent block must contain a <strong>timestamp</strong>
+    representing the time the block was created. You can use the <code>time.Now().UnixMilli()</code> function to get the
+    timestamp; it returns an <code>int64</code> value with the number of milliseconds since 1 January 1970:</p>
+<pre><code class="language-go">timestamp := time.Now().UnixMilli() // 1675514955056</code></pre><p>Your solution should
+    have at least two functions: the first one generates a new block in the blockchain, and the second one validates the
+    blockchain and returns true if the blockchain is valid. Of course, the Blockchain should store all its generated
+    blocks. The validation function should validate all the blocks of this blockchain.</p><p>Also, for hashing blocks,
+    you need to choose a good cryptographic hash function that is impossible to reverse-engineer. Insecure hash
+    functions allow hackers to change the information of the block so that the hash of the block stays the same, so the
+    hash function must be secure. A good example of a secure hash function is SHA-256.</p><p>Finally, to calculate the
+    hash of the block, you can create a string containing the block's <em>id</em>, <em>timestamp,</em> and the <em>hash
+        of the previous block</em> and then use functions from the <code>crypto/sha256</code> package to calculate the
+    hash. Below is an example of the <code>CalculateHash()</code> function that returns a <code>string</code> with the
+    hexadecimal representation of the newly calculated hash:</p>
+<pre><code class="language-go">func CalculateHash(blockID int, timestamp int64, previousBlockHash string) string {
+    blockData := fmt.Sprintf("%d%d%s", blockID, timestamp, previousBlockHash)
+
+    sha256Hash := sha256.New()
+    sha256Hash.Write([]byte(blockData))
+
+    return fmt.Sprintf("%x", sha256Hash.Sum(nil))
+}</code></pre><p>Your program must only create and output five (5) blocks in this stage.</p><h5>Example</h5><p>The
+    example below shows how your output might look. To be tested successfully, the program must output the information
+    of five (5) blocks in sequence.</p><p>Pay close attention to the example output; an empty new line <code>\n</code>
+    must separate each Block: </p>
+<pre><code class="language-no-highlight">Genesis Block:
+Id: 1
+Timestamp: 1675516147302
+Hash of the previous block:
+0
+Hash of the block:
+7b0c1ed372fd53e85c1f3addb4ad3181fe4e1fbfbbf013429df130d8aa1a492a
+
+Block:
+Id: 2
+Timestamp: 1675516147302
+Hash of the previous block:
+7b0c1ed372fd53e85c1f3addb4ad3181fe4e1fbfbbf013429df130d8aa1a492a
+Hash of the block:
+39784bfa166f656cac5f5ea9fdb9198514b85e59d47eecf352aad450317a2c80
+
+Block:
+Id: 3
+Timestamp: 1675516147303
+Hash of the previous block:
+39784bfa166f656cac5f5ea9fdb9198514b85e59d47eecf352aad450317a2c80
+Hash of the block:
+fad348fafa6f66294a7195992a9b89c491b343d458568b06355e003a9ff4b88b
+
+Block:
+Id: 4
+Timestamp: 1675516147303
+Hash of the previous block:
+fad348fafa6f66294a7195992a9b89c491b343d458568b06355e003a9ff4b88b
+Hash of the block:
+7007727908086ddf7171f2b337803067f9ab1fc88d09e5a2136fd72fb26623bf
+
+Block:
+Id: 5
+Timestamp: 1675516147303
+Hash of the previous block:
+7007727908086ddf7171f2b337803067f9ab1fc88d09e5a2136fd72fb26623bf
+Hash of the block:
+e321dc87b2a0edc0978e274b2f23ed5e36d6e3767b44c9f9ef4b5be42181af0a</code></pre>

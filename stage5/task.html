@@ -1,0 +1,146 @@
+<p>[TITLE]Practice 3155619[/TITLE]</p><h5>Description</h5><p>How safe is your messaging system at the moment? Anyone can add a message to the blockchain. But can anyone impersonate you and send a message using your name? Without encryption, this is totally possible. There needs to be a method to verify that you actually sent this message. Note that the registration/authorization method is bad because there is no server to check for a valid login/password pair. And if there is, it can be cracked by hackers who can steal your password. There needs to be a whole new level of security.</p><p>Asymmetric cryptography solves this problem. With this, you can sign the message and let the <strong>signature</strong> be a special part of the message. You can generate a pair of keys: a <strong>public key</strong> and a <strong>private key</strong>. The message should be signed with a private key. And anyone can verify that the message and the signature pair are valid using a public key. The private key should be only on your computer so no internet user can steal it. If you think someone can steal your computer to get the private key, you can delete it from the computer and keep it in your head—that would be an example of maximum safety!</p><p>Decentralized digital currency like Bitcoin uses the <a href="https://en.bitcoin.it/wiki/Secp256k1" rel="noopener noreferrer nofollow" target="_blank">Elliptic Curve secp256k1</a> to generate private keys and the <a href="https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm" rel="noopener noreferrer nofollow" target="_blank">Elliptic Curve Digital Signature Algorithm (ECDSA)</a> in <a href="https://en.wikipedia.org/wiki/ASN.1" rel="noopener noreferrer nofollow" target="_blank">ASN.1 format</a> to sign transactions. The private key is used to create a public key that is further associated with a user's Bitcoin address to receive funds; the private key is then again used to sign transactions and prove ownership of funds.</p><p>In this stage of the <strong>blockchain simulation</strong>, you'll sign each chat message using the Elliptic Curve Digital Signature Algorithm (ECDSA). By signing each chat message, you can ensure that it has not been tampered with and that the claimed sender indeed sent the message. Furthermore, signing messages is essential as it provides a way to verify the user's identity.</p><p>You can use the previously mentioned cryptography algorithms to simulate security in your blockchain and generate a <em>private key</em>, <em>public key,</em> and <em>signature</em> for the chat message. Below are some examples of the <code>GeneratePrivateKey()</code>, <code>GetPublicKey()</code> and <code>SignMessage()</code> functions:</p>[ALERT-primary]<p>Make sure you use the <code>cryptoRand</code> prefix to import the <code>"crypto/rand"</code> package, so you don't get an import conflict with the <code>"math/rand"</code> package!</p><pre><code class="language-go">package main
+
+// Make sure to import "crypto/rand" with the cryptoRand prefix
+// So you don't get an import conflict with the "math/rand" package
+import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	cryptoRand "crypto/rand" // Import "crypto/rand" with the `cryptoRand` prefix
+	"crypto/sha256"
+	"crypto/x509"
+	"encoding/base64"
+	"log"
+	"math/rand"
+)
+
+... // Some other code in your program
+
+func GeneratePrivateKey() *ecdsa.PrivateKey {
+    privateKey, err := ecdsa.GenerateKey(elliptic.P256(), cryptoRand.Reader)
+    if err != nil {
+        log.Fatal(err)
+    }
+    return privateKey
+}
+
+func GetPublicKey(privateKey *ecdsa.PrivateKey) string {
+    publicKey, err := x509.MarshalPKIXPublicKey(&amp;privateKey.PublicKey)
+    if err != nil {
+        log.Fatal(err)
+    }
+    return base64.StdEncoding.EncodeToString(publicKey)
+}
+
+func SignMessage(msg string, privateKey *ecdsa.PrivateKey) string {
+    sha256Hash := sha256.New()
+    sha256Hash.Write([]byte(msg))
+    hash := sha256Hash.Sum(nil)
+
+    bytes, err := ecdsa.SignASN1(cryptoRand.Reader, privateKey, hash[:])
+    if err != nil {
+        log.Fatal(err)
+    }
+    return base64.StdEncoding.EncodeToString(bytes)
+}</code></pre>[/ALERT]<p>Now there is another problem. A hacker can't just take any message and sign it like it is your message, but he can take an already signed message and paste it into the blockchain again; the signature of this message stays the same, doesn’t it? For this reason, all messages should have a unique <strong>message id</strong>.</p><p>To create a unique message id, you should create a string containing the block's timestamp, message, and a random 32-bit signed integer; then convert the string to binary format and hash the binary data twice using the functions from the <code>crypto/sha256</code> package. Below is an example of the <code>GenerateMessageID()</code> function:</p><pre><code class="language-go">func GenerateMessageID(timestamp int64, msg string) string {
+    data := fmt.Sprintf("%d%s%d", timestamp, msg, rand.Int31())
+    binaryData := []byte(data)
+
+    sha256Hash1 := sha256.New()
+    sha256Hash1.Write(binaryData)
+
+    sha256Hash2 := sha256.New()
+    sha256Hash2.Write(sha256Hash1.Sum(nil))
+
+    return fmt.Sprintf("%x", sha256Hash2.Sum(nil))
+}</code></pre><h5>Objectives</h5><p>In this stage, you need to upgrade the blockchain. Every newly mined block should include in its <code>"Block data:"</code> the following values:</p><ul><li><p>A single chat message sent by any user to the blockchain (as in previous stages);</p></li><li><p>A unique <code>Message ID</code> that is generated by using a double SHA-256 hash on the binary message data;</p></li><li><p>The ASN.1 encoded <code>Signature</code> of the message;</p></li><li><p>The message <code>Public Key</code> in the PKIX, ASN.1 DER form so other users can check that the message is valid.</p></li></ul><p>Remember to check every message when checking that the blockchain is valid! Every message should have a <code>Message ID</code>,  <code>Signature</code> and <code>Public Key</code>. Also, when validating the blockchain, you should check that every message has a unique id different from the id of the message of the previous block.</p><h5>Example</h5><p>To be tested successfully, the program must output the information of five (5) blocks in sequence.</p><p>The lines that start with <code>&gt;</code> represent user input.</p><p>Pay close attention to the example output; an empty new line <code>\n</code> must separate each prompt to enter a message, as well as each Block:</p><pre><code class="language-no-highlight">Genesis Block:
+Id: 1
+Timestamp: 1675734073486
+Magic number: 1914361987
+Hash of the previous block:
+0
+Hash of the block:
+523db195422ebb6a5a28a1471a8ed61309fd401c950df5f79f9b6596a36810b0
+Block data:
+No messages
+Block was generating for 0 seconds
+N was increased to 1
+
+Enter a single message to send to the Blockchain:
+&gt; Tom: Hey, I'm first
+
+Block:
+Created by miner2
+Id: 2
+Timestamp: 1675734073534
+Magic number: 1507629236
+Hash of the previous block:
+523db195422ebb6a5a28a1471a8ed61309fd401c950df5f79f9b6596a36810b0
+Hash of the block:
+06ce68f19da4f13b7a75123fd333c78f11b7998b740aaebb6ade1c5279affb8e
+Block data:
+Tom: Hey, I'm first
+Message ID: 3512105dedec3729315fb6ccc468ad0b498e0a5d91b559a2da78bad48b7a6f00
+Signature: MEQCICoQbGg0mkSdBh88108hjIvi4ydd2s6IBuhwK3vzXvd9AiA+Uqhh7MaAAa7FfG1DoLkGPBtTgCWTV+whPNZhHsHIaw==
+Public Key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEZzYblxuKWl04Qfp94Kr54gztEaeSYL6TGPHdbRsGHe8UqSWbfmInfGYmGE4K4crOJeQH7TTsoxxT578j0Ss0bA==
+Block was generating for 0 seconds
+N was increased to 2
+
+Enter a single message to send to the Blockchain:
+&gt; Alice: It's not fair! You always will be first because it is your blockchain!
+
+Block:
+Created by miner5
+Id: 3
+Timestamp: 1675734073631
+Magic number: 1671417464
+Hash of the previous block:
+06ce68f19da4f13b7a75123fd333c78f11b7998b740aaebb6ade1c5279affb8e
+Hash of the block:
+0005a4f807ce94222a28afa20738e524785b766a05d1fa6a431a4f386d5b44b3
+Block data:
+Alice: It's not fair! You always will be first because it is your blockchain!
+Message ID: b7c8239afbe3ab05d28c2d826933b65a2837f989f23467049e9fcab7fb52fbc8
+Signature: MEUCICTnPv4QckzV2nWtd1yPfTgF/70aTXNtIwUCM6iDhadbAiEAveAT92khHNQzFfxwPvknvXFKdPWr7LS12wyDoXNTWKg=
+Public Key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEkg3L1YPSJZA+f/jaqeQkhuH1l5zUWMOGzdo0JF7msoWSDr6odo3X33VWjSSTwX39A6epR8HDTxoClZedVJ8fzA==
+Block was generating for 0 seconds
+N was increased to 3
+
+Enter a single message to send to the Blockchain:
+&gt; Alice: Anyway, thank you for this amazing chat
+
+Block:
+Created by miner4
+Id: 4
+Timestamp: 1675734073727
+Magic number: 1452900089
+Hash of the previous block:
+0005a4f807ce94222a28afa20738e524785b766a05d1fa6a431a4f386d5b44b3
+Hash of the block:
+000e289ec76644034ce81893754f7049cfb09b7d9eeeb87a885113c41a5c1fc5
+Block data:
+Alice: Anyway, thank you for this amazing chat
+Message ID: c08e38610cc8f559152808e20619cca1187c87e3fbe90ef93c32d6d48938527b
+Signature: MEUCIA/3ZzDjWql7DlIA0dU+TcF7tQ+kWI6s7DtD1OGfJTxVAiEAgUqgiI0n2K0x++bH54T80unon7VEwFHHWW0uZwFzuIk=
+Public Key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEVh3JsLeW8ngKUaFvS3423yA1qyxBF2S2DFLDdMor/jtHJ9pBe8qcZD4CQIpnW6M7BScRGPe1f/8iSDnptnznXQ==
+Block was generating for 0 seconds
+N was increased to 4
+
+Enter a single message to send to the Blockchain:
+&gt; Tom: You're welcome, Alice :)
+
+Block:
+Created by miner6
+Id: 5
+Timestamp: 1675734073843
+Magic number: 2142234648
+Hash of the previous block:
+000e289ec76644034ce81893754f7049cfb09b7d9eeeb87a885113c41a5c1fc5
+Hash of the block:
+000016d73e4549affa1f5fa8899bcc8a62f4cd1a9463d48689f635f9bd7a56dc
+Block data:
+Tom: You're welcome, Alice :)
+Message ID: 20e7df5b648350903695892d9ec222846d037eb6284a1f4ec46b889d0c64b42f
+Signature: MEUCIQC/8RzegtS48UclZ/RQEahC1lbdlL+1cIZCslIyFZZQlAIgGGlAAq/weXepU5a4yZcjRLZ32/1VfBnVM5uDTC+6Qdg=
+Public Key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE3Q+mGM0wNyLl6L7UVtzGX+PadDj+3i4P88IBYqDsvF1p4ISMomg8jZsTZKB0VKmTRHvjBpCyoNCwTPX4sADvRQ==
+Block was generating for 0 seconds
+N was increased to 5</code></pre>

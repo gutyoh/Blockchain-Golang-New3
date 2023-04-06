@@ -1,0 +1,58 @@
+<p>[TITLE]Practice 3155615[/TITLE]</p><h5>Description</h5><p>After the blockchain gets initiated and the Genesis Block is created, the blockchain shouldn't create new/additional blocks. The blockchain just keeps the chain valid and accepts new blocks from outside.</p><p>In the outside world, there are a lot of computers that try to create a new block. All they do is search for a magic number to create a block whose hash starts with some zeros. The first computer to do so is a winner, the blockchain accepts this new block, and then all these computers try to find a magic number for the next block.</p><p>There is a special word for this: <strong>mining</strong>. The process of mining blocks is hard work for computers, like the process of mining minerals in real life is hard work. Computers that perform this task are called <strong>miners</strong>.</p><p>Note that the new blocks will get mined faster if there are more miners. But the problem is that we want to create new blocks with a stable frequency. For this reason, the blockchain should regulate the number N: the number of zeros at the start of a hash of the new block. If suddenly there are so many miners that the new block gets created in less than 5 seconds, the next block's complexity should increase by increasing the number N. On the other hand, if there are so few miners that creating a new block takes longer than 10 seconds, the number N should be lowered.</p><h5>Objectives</h5><p>In this stage, you should create a lot of goroutines with miners, and every one of them should contain the same blockchain. Remember that the Genesis Block gets created when the blockchain is initialized, so it isn't mined.</p><p>The miners should start mining new blocks after the Genesis Block is created, and the blockchain should regulate the number N. The blockchain should check the validity of the incoming block (ensure that the previous hash equals the hash of the last block of the blockchain and the hash of this new block starts with N zeros).</p><p>At the start, the number N equals 0. However, it should change according to the following conditions:</p><ul><li><p>N should be increased by 1 if the block creation time is less than 5 seconds</p></li><li><p>N should be decreased by 1 if the block creation time is greater than 10 seconds</p></li><li><p>N should stay the same if the block creation time is greater or equal to 5 seconds but less or equal to 10 seconds.</p></li></ul>[ALERT-warning]<p>Note that your program should not finish until it creates and outputs five (5) blocks in this stage. The tests check the output right after your program finishes execution.</p>[/ALERT]<h5><strong>Example</strong></h5><p>To be tested successfully, the program must output the information of five (5) blocks in sequence.</p><p>Pay close attention to the example output; an empty new line <code>\n</code> must separate each Block:</p><pre><code class="language-no-highlight">Genesis Block:
+Id: 1
+Timestamp: 1675646787107
+Magic number: 924373897
+Hash of the previous block:
+0
+Hash of the block:
+b4352ee9c4519a498680a69a38031dd6cae4a04e10d88371c407b5933df1cac3
+Block was generating for 0 seconds
+N was increased to 1
+
+Block:
+Created by miner3
+Id: 2
+Timestamp: 1675646787107
+Magic number: 1492680255
+Hash of the previous block:
+b4352ee9c4519a498680a69a38031dd6cae4a04e10d88371c407b5933df1cac3
+Hash of the block:
+054c25f022bee840a5815a1ae4aceb97f68e44a73a130ddd094d23a4b76b0255
+Block was generating for 1 seconds
+N was increased to 2
+
+Block:
+Created by miner5
+Id: 3
+Timestamp: 1675646787108
+Magic number: 212504169
+Hash of the previous block:
+054c25f022bee840a5815a1ae4aceb97f68e44a73a130ddd094d23a4b76b0255
+Hash of the block:
+00184f6744072a8808ff2a49e82cbabfc4f06fa1e47df88e1e3155722ba232c3
+Block was generating for 2 seconds
+N was increased to 3
+
+Block:
+Created by miner2
+Id: 4
+Timestamp: 1675646787110
+Magic number: 1730021355
+Hash of the previous block:
+00184f6744072a8808ff2a49e82cbabfc4f06fa1e47df88e1e3155722ba232c3
+Hash of the block:
+000e3a7c1dd398cf2e97d979d4d2d7dc50665832eca08ef326f47ac63afe35ea
+Block was generating for 5 seconds
+N stays the same
+
+Block:
+Created by miner7
+Id: 5
+Timestamp: 1675646787142
+Magic number: 1378609686
+Hash of the previous block:
+000e3a7c1dd398cf2e97d979d4d2d7dc50665832eca08ef326f47ac63afe35ea
+Hash of the block:
+0008b798b1476c1d9fd58ec85a296e6b2fe9bdc65b37b2a99e8bc9a4498f43d3
+Block was generating for 11 seconds
+N was decreased by 1</code></pre>

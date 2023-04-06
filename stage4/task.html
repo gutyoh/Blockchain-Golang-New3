@@ -1,0 +1,81 @@
+<p>[TITLE]Practice 3155618[/TITLE]</p><h5>Description</h5><p>For now, we are mining blocks to create a blockchain, but just the blockchain itself is not particularly useful. The most useful information in the blockchain is the data that every block stores. The information can be anything. Let's create a simple chat based on the blockchain. If this blockchain works on the internet, it would be a worldwide chat. Everyone can add a line to this blockchain, but no one can edit it afterward. Every message would be visible to anyone.</p><h5>Objectives</h5><p>In this stage, you need to upgrade the blockchain. Each block, except the Genesis Block, should contain a s<strong>ingle chat message</strong> received by the blockchain before starting the new block mining process. When the new block gets created, the message should become a part of the new block, and all the miners should start to search for a magic number for this block. Remember about using thread synchronization, as there is a lot of shared data.</p><p>You don't need any network connections, as this is only a <strong>simulation of the blockchain</strong>. Use a single blockchain and suppose that any user can send a single message to the blockchain just by invoking one method of the blockchain; this message should be further included within the newly mined blocks and printed as a new line <code>"Block data:"</code>.</p>[ALERT-primary]<p>Note that the single chat message should include whitespaces. To read a string with whitespaces from the input, you'll need to implement a <code>scanner</code> using the functions from the <code>bufio</code> package.</p>[/ALERT]<p>So, the algorithm for adding a single chat message to the blockchain is the following:</p><ol><li><p>The Genesis Block's <code>"Block data:"</code> line should contain the string <code>"No messages"</code>. The Genesis Block should NOT contain any data or message. After the Genesis Block is created and printed, your program should prompt the user: <code>"Enter a single chat message to send to the Blockchain:"</code>.</p></li><li><p>While miners search for a magic number to create the new block, the blockchain should temporarily keep the previously sent chat message in memory.</p></li><li><p>After creating the new block, the previously sent chat message should be included in the new block, printed after the <code>"Block data:"</code> line, and then deleted from memory.</p></li><li><p>The process will repeat from step 1 until the fifth and final block is output.</p></li></ol><h5>Example</h5><p>To be tested successfully, the program must output the information of five (5) blocks in sequence.</p><p>The lines that start with <code>&gt;</code> represent user input. </p><p>Pay close attention to the example output; an empty new line <code>\n</code> must separate each prompt to enter a message, as well as each Block:</p><pre><code class="language-no-highlight">Genesis Block:
+Id: 1
+Timestamp: 1675726342753
+Magic number: 75513550
+Hash of the previous block:
+0
+Hash of the block:
+d5d9dbff10b1d5c1452be45ca8d7f8c49eaa155cc981ae6bd1bd8c3b1f7c37b6
+Block data:
+No messages
+Block was generating for 0 seconds
+N was increased to 1
+
+Enter a single message to send to the Blockchain:
+&gt; Tom: Hey, I'm first
+
+Block:
+Created by miner5
+Id: 2
+Timestamp: 1675726342798
+Magic number: 1421386827
+Hash of the previous block:
+d5d9dbff10b1d5c1452be45ca8d7f8c49eaa155cc981ae6bd1bd8c3b1f7c37b6
+Hash of the block:
+0828b3ffd0b2244496cc09ba4d7de469ff4b2357e33948ecc0495cc7fcef280e
+Block data:
+Tom: Hey, I'm first
+Block was generating for 0 seconds
+N was increased to 2
+
+Enter a single message to send to the Blockchain:
+&gt; Alice: It's not fair! You always will be first because it is your blockchain!
+
+Block:
+Created by miner8
+Id: 3
+Timestamp: 1675726342865
+Magic number: 1533323711
+Hash of the previous block:
+0828b3ffd0b2244496cc09ba4d7de469ff4b2357e33948ecc0495cc7fcef280e
+Hash of the block:
+00785e379e7afa7cb54b01f93b779563ca10630ed0774eea908f198f0f0f632f
+Block data:
+Alice: It's not fair! You always will be first because it is your blockchain!
+Block was generating for 0 seconds
+N was increased to 3
+
+Enter a single message to send to the Blockchain:
+&gt; Alice: Anyway, thank you for this amazing chat
+
+Block:
+Created by miner2
+Id: 4
+Timestamp: 1675726342948
+Magic number: 1578026450
+Hash of the previous block:
+00785e379e7afa7cb54b01f93b779563ca10630ed0774eea908f198f0f0f632f
+Hash of the block:
+0006834605767e925f6186df78119dcead6226e214e7ac02e49e0ee7c7963f62
+Block data:
+Alice: Anyway, thank you for this amazing chat
+Block was generating for 0 seconds
+N was increased to 4
+
+Enter a single message to send to the Blockchain:
+&gt; Tom: You're welcome, Alice :)
+
+Block:
+Created by miner5
+Id: 5
+Timestamp: 1675726343022
+Magic number: 787530344
+Hash of the previous block:
+0006834605767e925f6186df78119dcead6226e214e7ac02e49e0ee7c7963f62
+Hash of the block:
+000044f2dd3077aab4931e295447e253ce15c6ef3d55c4ce2a29498f1a5ce6e5
+Block data:
+Tom: You're welcome, Alice :)
+Block was generating for 0 seconds
+N was increased to 5
+</code></pre>

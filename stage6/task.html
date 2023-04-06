@@ -1,0 +1,310 @@
+<h2>Description</h2>
+
+<p>Today, the most common application of blockchains is cryptocurrencies. A cryptocurrency's blockchain contains a list of transactions: everyone can see the transactions, but no one can change them. In addition, no one can send a transaction as another user; this is possible using digital signatures. You have actually implemented all of this functionality in the previous stages.<br>
+    <br>
+    A miner who creates a new block should be awarded some virtual money, for example, 100 virtual coins (VC). This reward is known as the <strong>coinbase transaction</strong> and should be the <em>first transaction</em> in every block's data. This transaction can be remembered in the blockchain if the block stores information about the miner who created this block. Of course, this transaction also should be proved, so the miner adds this information to the blockchain before starting a search for a magic number.</p>
+
+<p>After that, a miner can spend these 100 virtual coins by giving them to someone else. In the real world, these virtual coins can be used to pay for things instead of real money. These virtual coins go to the company that sells the things, and the company can pay salaries with these virtual coins. The circulation of these coins starts here, and suddenly the virtual coins become more popular than real money!</p>
+
+<h2>Objectives</h2>
+
+<p>In this stage, you need to implement <strong>multiple transactions</strong> instead of a single chat message, like in the previous stage. Note that every single transaction should also have a unique <em>transaction id</em>, <em>signature</em>, <em>private key</em>, and <em>public key</em>.</p>
+
+<p>Since this is a <strong>blockchain simulation</strong>, we'll keep things simple and assume that virtual coins (VC) will be sent from one <em>user to another user</em>.</p>
+
+<p>After creating the Genesis Block (which should not contain any transaction data), your program should prompt the user to <code>"Enter how many transactions you want to perform:"</code>  and then prompt the <code>"From user:"</code>, <code>"To user:"</code> and the <code>"VC Amount:"</code> that will be sent.</p>
+
+<p>During the <em>transaction prompt</em>, your program should check how many virtual coins a user has. To do this, you'll need to check all of their transactions and all of the transactions to them.</p>
+
+<p> [ALERT-primary]To keep things simple, you can assume that every single user of the blockchain, including miners, starts with 100 virtual coins (VC).[/ALERT]</p>
+
+<p>Below is an example of the <code>CheckPreviousTransactions()</code> function, you can further modify and adapt it for your program:</p>
+
+<pre><code class="language-go">func CheckPreviousTxs(username string, blockchain []Block) int {
+    // To make things simple, every user of the blockchain,
+    // including miners starts with 100 VC:
+    balance := 100
+
+    for _, block := range blockchain {
+        for _, tx := range block.Transactions {
+            if username == tx.FromUser {
+                balance -= tx.Amount
+            }
+
+            if username == tx.ToUser {
+                balance += tx.Amount
+            }
+        }
+    }
+    return balance
+}</code></pre>
+
+<p>The transaction should be declared <span style="color: #66cc66;">valid</span> if the sender has enough coins, and print the remaining balance of the sender and the new balance of the receiver:</p>
+
+<pre><code class="language-no-highlight">From user:
+&gt; Nick
+To user:
+&gt; Alice
+VC Amount:
+&gt; 30</code>
+<span style="color: #66cc66;">Transaction is valid
+Nick remaining balance: 70 VC
+Alice new balance: 130 VC</span>
+</pre>
+
+<p>The transaction should be declared <span style="color: #ff4363;">not valid</span> if the sender tries to spend more coins than they have at the moment and print a message that the user doesn't have enough VC to send, followed by the sender's current balance:</p>
+
+<pre><code class="language-no-highlight">From user:
+&gt; Nick
+To user:
+&gt; FerrariShop
+VC Amount:
+&gt; 71</code>
+<span style="color: #ff4363;">Transaction is not valid
+User Nick doesn't have enough VC to send
+Nick current balance: 70 VC</span>
+</pre>
+
+<p>The transaction should also be declared <span style="color: #ff4363;">not valid</span> if the sender tries to send money to themselves and print a message that you can't send VC from one user to the same user:</p>
+
+<pre><code class="language-no-highlight">From user:
+&gt; Alice
+To user:
+&gt; Alice
+VC Amount:
+&gt; 50</code>
+<span style="color: #ff4363;">Transaction is not valid
+You can't send VC from one user to the same user</span>
+</pre>
+
+<p>After the transaction prompt, only <em>valid transactions, </em>including the <em>reward/coinbase</em> transaction, should be added to the <strong>blockchain memory pool</strong> as pending transactions. After the mining process is finished and a new block is created, these pending transactions must be included in the new block, and you should <em>clear the blockchain memory pool</em> so it is ready to temporarily store any subsequent valid transactions.</p>
+
+<h2>Example</h2>
+
+<p>In the output example, VC stands for virtual coins. To be tested successfully, the program must output the information of five (5) blocks in sequence.</p>
+
+<p>The lines that start with <code>&gt;</code> represent user input. An empty new line must separate each block:</p>
+
+<pre><code class="language-no-highlight">Genesis Block:
+Id: 1
+Timestamp: 1675738124196
+Magic number: 790836003
+Hash of the previous block:
+0
+Hash of the block:
+ec2cac85a51910e5dc94a08334e0da689155adcb6859c2b2b8aa56e7c77aadc6
+Block data:
+No transactions
+Block was generating for 0 seconds
+N was increased to 1
+
+Enter how many transactions you want to perform:
+&gt; 2
+From user:
+&gt; Nick
+To user:
+&gt; Alice
+VC Amount:
+&gt; 30
+Transaction is valid
+Nick remaining balance: 70 VC
+Alice new balance: 130 VC
+
+From user:
+&gt; Nick
+To user:
+&gt; FerrariShop
+VC Amount:
+&gt; 71
+Transaction is not valid
+User Nick doesn't have enough VC to send
+Nick current balance: 70 VC
+
+Block:
+Created by miner1
+Id: 2
+Timestamp: 1675738124477
+Magic number: 983210019
+Hash of the previous block:
+ec2cac85a51910e5dc94a08334e0da689155adcb6859c2b2b8aa56e7c77aadc6
+Hash of the block:
+0ec59cdce7915209b493ce91d008981009e8aac004311d9591a5f77e7b251576
+Block data:
+Transaction #1 (Coinbase):
+Transaction ID: 73bdc0e1314a2129a3e402dc5798e3c26e20a3a67fcb4a465068984f0bcc0c2c
+Blockchain sent 100 VC to miner1
+Public Key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEEKlxjznAdUbUnq/kPAEflGv82nV/WbqpUHDg42s9ZiDqBts5cugywxKoqRPoN9v2XWqo/o0uB7LqjFn5HnGiTg==
+Transaction #2:
+Transaction ID: b39042d8fde21362de920256510a5ce77d867856548b49b3ae3d2aa29fa2d0ba
+Nick sent 30 VC to Alice
+Signature: MEUCIEUxYGVvw2ia8BiqSiiIBKGoTzCmJ43qnWEBlMneIpqpAiEA5/iMt3D3A47UcCcWgb+TYBRqyr5b/YXHh0QyRqVI5sI=
+Public Key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEUAsUzADtqMFMOTGVjAxLd9mJlThdrLuOyknBQ4scA9hbkzPw3bA8oiq1pW02YTGMUXyi3mUms2may3rGgZKYIA==
+Block was generating for 0 seconds
+N was increased to 2
+
+Enter how many transactions you want to perform:
+&gt; 2
+From user:
+&gt; Alice
+To user:
+&gt; Nick
+VC Amount:
+&gt; 80
+Transaction is valid
+Alice remaining balance: 50 VC
+Nick new balance: 150 VC
+
+From user:
+&gt; Alice
+To user:
+&gt; Alice
+VC Amount:
+&gt; 50
+Transaction is not valid
+You can't send VC from one user to the same user
+
+Block:
+Created by miner8
+Id: 3
+Timestamp: 1675738124795
+Magic number: 1215756321
+Hash of the previous block:
+0ec59cdce7915209b493ce91d008981009e8aac004311d9591a5f77e7b251576
+Hash of the block:
+00d6dde2816df1138eacad9e176bef8ab232cd484c51057a6765d4094a0e5896
+Block data:
+Transaction #1 (Coinbase):
+Transaction ID: 2471047ef84ee781b58287bb91c6ea908fc56c1c19778d54def6c63dc4ab2ff3
+Blockchain sent 100 VC to miner8
+Public Key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEsYVe1/8CPsdHi2w4zL/k1fmhN+u1R/ScYCM0DQTNrUUocy0C11Tvywhb71ZhuCV0aB335f8hFrK+07GlBwyE7w==
+Transaction #2:
+Transaction ID: 7e01740b0071e9889e37233a67609738ded13dd6701b42e87392bd7a1ad07866
+Alice sent 80 VC to Nick
+Signature: MEYCIQC9238payjpU30kyOh97kEOqPkiBc5sdH9QcfQv2fwu8gIhAOsR2a3M1WOZmWhi4MEURMv+NWidmxccqKxrACLcVk8B
+Public Key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEDhVOhrEbKDtIJhp75iEvIj7r5xOly6apX8+W1HFU/p560/s/OkuUZTGJDZLGHRLwKJEk4mcKxA3BqyialOUTEQ==
+Block was generating for 0 seconds
+N was increased to 3
+
+Enter how many transactions you want to perform:
+&gt; 3
+From user:
+&gt; Alice
+To user:
+&gt; SephoraShop
+VC Amount:
+&gt; 60
+Transaction is not valid
+User Alice doesn't have enough VC to send
+Alice current balance: 50 VC
+
+From user:
+&gt; HyperGlam
+To user:
+&gt; Alice
+VC Amount:
+&gt; 30
+Transaction is valid
+HyperGlam remaining balance: 70 VC
+Alice new balance: 80 VC
+
+From user:
+&gt; Alice
+To user:
+&gt; KrustyBurger
+VC Amount:
+&gt; 2
+Transaction is valid
+Alice remaining balance: 78 VC
+KrustyBurger new balance: 102 VC
+
+Block:
+Created by miner6
+Id: 4
+Timestamp: 1675738125205
+Magic number: 827750866
+Hash of the previous block:
+00d6dde2816df1138eacad9e176bef8ab232cd484c51057a6765d4094a0e5896
+Hash of the block:
+000541f8826329cb5b26ca2dd6f6c53a50320cac44213228045b51e9cd12b99f
+Block data:
+Transaction #1 (Coinbase):
+Transaction ID: 6b2a06b0bf0180edd828555800ac2c38afd6b20c048b9530108c3052d411df8c
+Blockchain sent 100 VC to miner6
+Public Key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEBV3T/h3N+LpRTXlx+UwlgBCr+AD5NQTkB48buQwxSCOgvJxq2pZYOeH0S53aNFb2miPs3uf2Im4yVBecB5FSNg==
+Transaction #2:
+Transaction ID: f197f6d0da5981246240eebaacb537758ac931a17d66097ecfbd87fc77f85e33
+Alice sent 2 VC to KrustyBurger
+Signature: MEUCIAiHFTiZAVpWCDWoMHXEQPonUQKfE5hwBLEoyn0jqOH1AiEAz1jhv8k1tFvWi6UmbAKHHOjvCQT7JyeTccSTXCN4LnQ=
+Public Key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEG7HehH4oSdJxiap5EUAk5SKP+VdUR7EdW1lfMqijLvAnF+r2IMPcqcFuMETy4WccP4eeg/MSSYmSFyhrUtA0MA==
+Transaction #3:
+Transaction ID: bf08fafc4a274ddd72f9f82633aad7cec4e8204a0082eaa1ae163d3d62653f4d
+HyperGlam sent 30 VC to Alice
+Signature: MEYCIQDe7sTQgfAHCfnUssYoKrF0nd03KZA4Tz5su9hrnf8bbgIhAJ8fZZpzArjQnOpmP+BMPZOpL3oyeyEKiSy+w6NNe3b1
+Public Key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEhgwibTLt1kOtF0nMWJm/fMkLcHAo8IgIhTTl/TJ1ad92pBL7JtQWPDEyTjTyH0Tyov0KIV5caz9+dV/U/x8NQw==
+Block was generating for 0 seconds
+N was increased to 4
+
+Enter how many transactions you want to perform:
+&gt; 3
+From user:
+&gt; IroncladConstruction
+To user:
+&gt; Nick
+VC Amount:
+&gt; 30
+Transaction is valid
+IroncladConstruction remaining balance: 70 VC
+Nick new balance: 180 VC
+
+From user:
+&gt; Nick
+To user:
+&gt; FerrariShop
+VC Amount:
+&gt; 175
+Transaction is valid
+Nick remaining balance: 5 VC
+FerrariShop new balance: 275 VC
+
+From user:
+&gt; Nick
+To user:
+&gt; FuelStation
+VC Amount:
+&gt; 4
+Transaction is valid
+Nick remaining balance: 1 VC
+FuelStation new balance: 104 VC
+
+Block:
+Created by miner8
+Id: 5
+Timestamp: 1675738125612
+Magic number: 77259861
+Hash of the previous block:
+000541f8826329cb5b26ca2dd6f6c53a50320cac44213228045b51e9cd12b99f
+Hash of the block:
+0000bb614d9dbb0a271ffe514fc14044aa35d1f73913b79294265ddc417fde74
+Block data:
+Transaction #1 (Coinbase):
+Transaction ID: fd0993d341228c80e878b92c8b8411abff1bac584666f7f4d1473fbb3b9da49e
+Blockchain sent 100 VC to miner8
+Public Key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEYubmFgs8e2scnqcLamVQzNMIvsOZa8fAg4Ca/vUiHvdHtuxPPmcgTd4yaK05W+xX8kbBtzJR+KoecQLQbMMo8w==
+Transaction #2:
+Transaction ID: 1e4afe4baca8cc44bda67fd31c426bfae98eab0202b80985f4a55cbe9d9abda4
+Nick sent 4 VC to FuelStation
+Signature: MEUCID0R8ukAnQdYOo/fn8ya1YBsdFFU7ifpSgl1FfWUlzKWAiEA2cKw4uKfKczv2HIQp7LfAAOIDkf1ullC/U7CGfDL3Es=
+Public Key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE3HF3SZvIUtCitX92saVEoDcgkRI9RLQp4YGS/RfFXkJzWb+4W4m8rX/wlpLdOb30svLXB7f4R1CqMAZF4kv5nA==
+Transaction #3:
+Transaction ID: 2c35e79b9614144f58d10b9ef6db9c38b5a51c020cb39b9fbf903fa272a6a7a6
+IroncladConstruction sent 30 VC to Nick
+Signature: MEUCIC71b57jWuPFOEXAUaXVfLz1yYr7kk5JX+7ku5M/zjG3AiEAiqjzOQUS7QOYpgNMGAkv26iFx22m5gpzhGNRhVib/As=
+Public Key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEqxqbFasqyqA41vY4Yzaj8ZQZB74HoB4jZgN3FzBMgaJXc4/FM/e+Lwl1RTO4rLgxM0vyUuHQ44NOfvIUSFIP1w==
+Transaction #4:
+Transaction ID: c82de3818e294d492423ca2d8f3e144cf0f2a978f3cbca6467663de7bc8d9f14
+Nick sent 175 VC to FerrariShop
+Signature: MEQCIBnxlTw7kvMJFy9kU1kf1Po1aoHCh/PFD/UmVFESSubvAiBQPzMJdbDZLOUIzbZ8yAiFoHk4cQ00NKLFcx/W/fGLdA==
+Public Key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAELEW9i4EJbZerxEOEz6PLcUt7UfEVSyBcSEfh4mSDs3qWeEOFhbJlHKJCOILFXzdxwOAC1QNHvazE9/OKwuoO3Q==
+Block was generating for 0 seconds
+N was increased to 5
+</code></pre>

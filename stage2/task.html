@@ -1,0 +1,105 @@
+<p>[TITLE]Practice 3155614[/TITLE]</p><h5>Description</h5><p>The security of our blockchain is pretty low. You can't just change some information in the middle of a blockchain because the hash of this block will also change. And the next block still keeps the old hash value of the previous block. But can't we replace the old hash value with the new hash value so everything will be ok? No, because when you change the value of the previous hash in the block, the hash of this block will also be changed! To fix this, you must change the value of the previous hash in the block after it. To solve this problem, you must fix hash values in all the blocks until the last block of the blockchain!<br><br>This seems to be a pretty hard task, doesn't it? If the time it takes to fix the hash value of the previous block is less than the time to create a new block, we suddenly would be fixing blocks faster than the system can create them, and eventually, we will fix them all. The problem is that fixing the hash values is easy to do. The blockchain becomes useless if it is possible to change information in it.<br><br>The solution to this is called <strong>proof of work</strong>. This means that creating new blocks and fixing hash values in the existing ones should take time and shouldn't be instant. The time should depend on the amount of computational work put into it. This way, the hacker must have more computational resources than the rest of the computers in the system.<br><br>The main goal is that the hash of the block shouldn't be random. It should start with some amount of zeros. To achieve that, the block should contain an additional field with a <em>32-bit signed integer</em>: a <strong>magic number</strong>. Of course, this number should take part in calculating the hash of this block. With one magic number and another magic number, the hashes would be different, even though the other part of the block stays the same. But with the help of probability theory, one can say that there exist some magic numbers with which the hash of the block starts with some number of zeros. The only way to find one of them is to make random guesses until you find one of them. For a computer, this means that the only way to find the solution is to brute force it: try 1, 2, 3, and so on. The better solution would be to brute force with random numbers, not with the increasing from 1 to N where N is the solution. You can see this algorithm in the animation below:</p><p style="text-align: center;"><img alt="" height="311px" src="https://ucarecdn.com/6c578e14-8e6c-43fc-b67f-81a46405b7d8/" width="556px"></p><p>Obviously, the more zeros you need at the start of the block hash, the harder this task will become. And finally, if the hacker wants to change some information in the middle of the blockchain, the hash of the modified block would be changed, and it won't start with zeros, so the hacker would be forced to find another magic number to create a block with a hash which starts with zeros. Note that the hacker must find magic numbers for all of the blocks until the end of the blockchain, which seems like a pretty impossible task, considering that the blockchain will grow faster.</p><p>It's said that the block is <strong>proved </strong>if it has a hash that starts with some number of zeros. The information inside the block is impossible to change even though the information itself is open and easy to edit in the text editor. The result of the edit is a changed hash of the block, no longer containing zeros at the start, so this block suddenly becomes <strong>unproved </strong>after the edit. And since the blockchain must consist of only proved blocks, the whole blockchain becomes invalid. This is the power of the proof of work concept.</p><h5>Objectives</h5><p>In this stage, you need to improve the blockchain. It should generate new blocks only with hashes that start with N zeros. The number N should be input from the keyboard.</p><p>To generate the 32-bit signed integer <em>magic number,</em> you can keep it simple and just use the <code>rand.Int31()</code> function from the <code>math/rand</code> package:</p><pre><code class="language-go">// Generate a random 32-bit signed integer and assign it to `magicNumber`
+magicNumber := rand.Int31()         </code></pre><h5>Examples</h5><p>The example below shows how your output might look. Output the information of five blocks in the blockchain. Also, output the time that was needed to create a block. Your results and time measurements can be different than in the example!</p><p>To be tested successfully, the program must output the information of five (5) blocks in sequence.</p><p>The lines that start with <code>&gt;</code> represent user input.</p><p>Pay close attention to the example output; an empty new line <code>\n</code> must separate the prompt to enter how many zeros the hash must start with, as well as each Block:</p><p><strong>Example 1:</strong></p><pre><code class="language-no-highlight">Enter how many zeros the hash must start with:
+&gt; 5
+
+Genesis Block:
+Id: 1
+Timestamp: 1675632572491
+Magic number: 427748564
+Hash of the previous block:
+0
+Hash of the block:
+00000c859a538e73102764557bc12ab8b4504c7016caf6459e5ced2fd14d79c9
+Block was generating for 12 seconds
+
+Block:
+Id: 2
+Timestamp: 1675632572491
+Magic number: 374838587
+Hash of the previous block:
+00000c859a538e73102764557bc12ab8b4504c7016caf6459e5ced2fd14d79c9
+Hash of the block:
+0000042185d2e778294374e167cd8c9ed9f62b5bdf4824824db539bcf319fbdd
+Block was generating for 21 seconds
+
+Block:
+Id: 3
+Timestamp: 1675632577587
+Magic number: 1715558961
+Hash of the previous block:
+0000042185d2e778294374e167cd8c9ed9f62b5bdf4824824db539bcf319fbdd
+Hash of the block:
+00000b2b8142f031246abf3ce86b794fe934efdb3830cf8e304eb77643e98ee3
+Block was generating for 18 seconds
+
+Block:
+Id: 4
+Timestamp: 1675632578998
+Magic number: 277181701
+Hash of the previous block:
+00000b2b8142f031246abf3ce86b794fe934efdb3830cf8e304eb77643e98ee3
+Hash of the block:
+000007a5335016bba842260505d4881bb99f144c08c247307d62e150e0084fa5
+Block was generating for 15 seconds
+
+Block:
+Id: 5
+Timestamp: 1675632580809
+Magic number: 143202528
+Hash of the previous block:
+000007a5335016bba842260505d4881bb99f144c08c247307d62e150e0084fa5
+Hash of the block:
+00000d9b91f1a4256d3ea2e41663fd4b14ecfe5c675ef51fdd4a5abdaf75e8ad
+Block was generating for 17 seconds</code></pre><p><strong>Example 2:</strong></p><pre><code>Enter how many zeros the hash must start with:
+&gt; 8
+
+Genesis Block:
+Id: 1
+Timestamp: 1675644371990
+Magic number: 1311663182
+Hash of the previous block:
+0
+Hash of the block:
+000000009ed14ad564f3294b76f80167cbeb58e446bbeb9b9f0cba30f89f7ba2
+Block was generating for 231 seconds
+
+Block:
+Id: 2
+Timestamp: 1675644371990
+Magic number: 1299069202
+Hash of the previous block:
+000000009ed14ad564f3294b76f80167cbeb58e446bbeb9b9f0cba30f89f7ba2
+Hash of the block:
+00000000a4f4b55f859e4de5680c97a90070ed0f4465a9bee67b9ae886106100
+Block was generating for 211 seconds
+
+Block:
+Id: 3
+Timestamp: 1675644372002
+Magic number: 1815420171
+Hash of the previous block:
+00000000a4f4b55f859e4de5680c97a90070ed0f4465a9bee67b9ae886106100
+Hash of the block:
+000000009bb1fd5dfabbcb4cd0ee73b30cdad1c89c893ba4abf714040676d526
+Block was generating for 305 seconds
+
+Block:
+Id: 4
+Timestamp: 1675644372016
+Magic number: 2080041505
+Hash of the previous block:
+000000009bb1fd5dfabbcb4cd0ee73b30cdad1c89c893ba4abf714040676d526
+Hash of the block:
+00000000843fe5cede5b994a563b19725cddda7e8f617c7effa79375c807e157
+Block was generating for 256 seconds
+
+Block:
+Id: 5
+Timestamp: 1675644372037
+Magic number: 1828894187
+Hash of the previous block:
+00000000843fe5cede5b994a563b19725cddda7e8f617c7effa79375c807e157
+Hash of the block:
+00000000ff189743b1ee5b6bc5037f673903a413ec45db6d5057c6979ef67288
+Block was generating for 301 seconds
+</code></pre>
