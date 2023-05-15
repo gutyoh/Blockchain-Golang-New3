@@ -8,6 +8,7 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"log"
 	"math/rand"
@@ -47,36 +48,15 @@ func (b *Block) CalculateHash() string {
 		magicNumber       = fmt.Sprintf("%d", b.MagicNumber)
 		previousBlockHash = b.PreviousHash
 	)
-	//sha256Hash := sha256.New()
-	//sha256Hash.Write([]byte(blockID + timestamp + magicNumber + previousBlockHash))
-	//
-	//return fmt.Sprintf("%x", sha256Hash.Sum(nil))
-
 	sha256Hash := sha256.New()
-
-	fmt.Sprintf("%s", magicNumber)
-
 	sha256Hash.Write([]byte(blockID + timestamp + magicNumber + previousBlockHash))
 
-	x := fmt.Sprintf("%x", sha256Hash.Sum(nil))
-
-	return x
+	blockHash := fmt.Sprintf("%x", sha256Hash.Sum(nil))
+	return blockHash
 }
 
-//func (b *Block) GenerateMessageID(data string) string {
-//	binaryData := []byte(fmt.Sprintf("%d%d%s", b.Timestamp.UnixNano(), rand.Int31(), data))
-//
-//	sha256Hash1 := sha256.New()
-//	sha256Hash1.Write(binaryData)
-//
-//	sha256Hash2 := sha256.New()
-//	sha256Hash2.Write(sha256Hash1.Sum(nil))
-//
-//	return fmt.Sprintf("%x", sha256Hash2.Sum(nil))
-//}
-
-func (b *Block) GenerateMessageID(data string) string {
-	binaryData := []byte(fmt.Sprintf("%d%s", b.Timestamp.UnixNano(), data))
+func (b *Block) GenerateMessageID(msg string, publicKey string, signature string) string {
+	binaryData := []byte(fmt.Sprintf("%s%s%s", msg, publicKey, signature))
 
 	sha256Hash1 := sha256.New()
 	sha256Hash1.Write(binaryData)
@@ -85,16 +65,6 @@ func (b *Block) GenerateMessageID(data string) string {
 	sha256Hash2.Write(sha256Hash1.Sum(nil))
 
 	return fmt.Sprintf("%x", sha256Hash2.Sum(nil))
-}
-
-func (b *Block) SignMessage(data string) string {
-	hash := sha256.Sum256([]byte(data))
-
-	bytes, err := ecdsa.SignASN1(cryptoRand.Reader, b.GetPrivateKey(), hash[:])
-	if err != nil {
-		log.Fatal(err)
-	}
-	return base64.StdEncoding.EncodeToString(bytes)
 }
 
 func (b *Block) GetPrivateKey() *ecdsa.PrivateKey {
@@ -137,6 +107,13 @@ func (bc *Blockchain) CreateGenesisBlock() *Block {
 		Timestamp:    timestamp,
 		PreviousHash: "0",
 	}
+
+	// Add build time calculation for Genesis block
+	start := time.Now()
+	FindBlock(strings.Repeat("0", 0), genesisBlock, nil) // No difficulty for Genesis block
+	buildTime := int64(time.Since(start).Seconds())
+	genesisBlock.BuildTime = buildTime
+
 	return genesisBlock
 }
 
@@ -149,15 +126,15 @@ func (bc *Blockchain) GetBlockData() error {
 	}
 	msgContent := scanner.Text()
 
-	// Generate the message ID
 	lastBlock := bc.Chain[len(bc.Chain)-1]
-	msgID := lastBlock.GenerateMessageID(msgContent)
 
-	// Sign the message
-	msgSignature := lastBlock.SignMessage(msgContent)
+	msgPrivateKey := GeneratePrivateKey()
 
-	// Get the message public key
-	msgPubKeyString := bc.GetPublicKey(lastBlock)
+	msgSignature := SignMessage(msgContent, msgPrivateKey)
+
+	msgPubKeyString := GetPublicKey(msgPrivateKey)
+
+	msgID := lastBlock.GenerateMessageID(msgContent, msgPubKeyString, msgSignature)
 
 	// Add the "pending message" to the block memory pool of the blockchain
 	bc.MemPool = append(bc.MemPool, Message{
@@ -206,8 +183,12 @@ func (bc *Blockchain) Print(nState string) {
 		for _, msg := range lastBlock.Data {
 			fmt.Printf("%s\n", msg.Content)
 			fmt.Printf("Message ID: %s\n", msg.ID)
-			fmt.Printf("Signature: %s\n", msg.Signature)
 			fmt.Printf("Public Key: %s\n", msg.PublicKey)
+			fmt.Printf("Signature: %s\n", msg.Signature)
+			err := VerifySignature(msg.Content, msg.Signature, msg.PublicKey)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 		lastBlock.Data = nil
 	}
@@ -223,6 +204,60 @@ func (bc *Blockchain) Print(nState string) {
 }
 
 // ======================== HELPER FUNCTIONS ========================
+
+func VerifySignature(msg string, signature string, publicKey string) error {
+	decodedSignature, err := base64.StdEncoding.DecodeString(signature)
+	if err != nil {
+		return fmt.Errorf("failed to decode signature: %w", err)
+	}
+
+	decodedPublicKey, err := base64.StdEncoding.DecodeString(publicKey)
+	if err != nil {
+		return fmt.Errorf("failed to decode public key: %w", err)
+	}
+
+	pubKeyInterface, err := x509.ParsePKIXPublicKey(decodedPublicKey)
+	if err != nil {
+		return fmt.Errorf("failed to parse public key: %w", err)
+	}
+	pubKey := pubKeyInterface.(*ecdsa.PublicKey)
+
+	hash := sha256.Sum256([]byte(msg))
+
+	valid := ecdsa.VerifyASN1(pubKey, hash[:], decodedSignature)
+	if !valid {
+		return errors.New("invalid signature")
+	}
+	return nil
+}
+
+func GeneratePrivateKey() *ecdsa.PrivateKey {
+	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), cryptoRand.Reader)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return privateKey
+}
+
+func GetPublicKey(privateKey *ecdsa.PrivateKey) string {
+	publicKey, err := x509.MarshalPKIXPublicKey(&privateKey.PublicKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return base64.StdEncoding.EncodeToString(publicKey)
+}
+
+func SignMessage(msg string, privateKey *ecdsa.PrivateKey) string {
+	sha256Hash := sha256.New()
+	sha256Hash.Write([]byte(msg))
+	hash := sha256Hash.Sum(nil)
+
+	bytes, err := ecdsa.SignASN1(cryptoRand.Reader, privateKey, hash[:])
+	if err != nil {
+		log.Fatal(err)
+	}
+	return base64.StdEncoding.EncodeToString(bytes)
+}
 
 func PrintGenesisBlock(difficulty int, hyperCoin *Blockchain, prefix string) (int, string) {
 	difficulty++
@@ -246,6 +281,10 @@ func FindBlock(prefix string, b *Block, done chan struct{}) {
 	}
 }
 
+func (b *Block) GenerateMessageIDTimestamp() int64 {
+	return time.Now().UnixNano()
+}
+
 func MineBlock(prevBlock *Block, prefix string, creator uint, next chan Block, done chan struct{}) {
 	start := time.Now()
 	b := Block{
@@ -256,7 +295,6 @@ func MineBlock(prevBlock *Block, prefix string, creator uint, next chan Block, d
 
 	FindBlock(prefix, &b, done)
 
-	// b.Timestamp = time.Now()
 	b.BuildTime = int64(time.Since(start).Seconds())
 	b.Miner = creator
 	next <- b
