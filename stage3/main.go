@@ -32,16 +32,10 @@ func (b *Block) CalculateHash() string {
 		previousBlockHash = b.PreviousHash
 	)
 	sha256Hash := sha256.New()
-
-	fmt.Sprintf("%s", magicNumber)
-
 	sha256Hash.Write([]byte(blockID + timestamp + magicNumber + previousBlockHash))
 
-	x := fmt.Sprintf("%x", sha256Hash.Sum(nil))
-
-	return x
-
-	// return fmt.Sprintf("%x", sha256Hash.Sum(nil))
+	blockHash := fmt.Sprintf("%x", sha256Hash.Sum(nil))
+	return blockHash
 }
 
 type Blockchain struct {
@@ -75,6 +69,13 @@ func (bc *Blockchain) CreateGenesisBlock() *Block {
 		Timestamp:    timestamp,
 		PreviousHash: "0",
 	}
+
+	// Add build time calculation for Genesis block
+	start := time.Now()
+	FindBlock(strings.Repeat("0", 0), genesisBlock, nil) // No difficulty for Genesis block
+	buildTime := int64(time.Since(start).Seconds())
+	genesisBlock.BuildTime = buildTime
+
 	return genesisBlock
 }
 
@@ -134,7 +135,6 @@ func MineBlock(prevBlock *Block, prefix string, creator uint, next chan Block, d
 
 	FindBlock(prefix, &b, done)
 
-	// b.Timestamp = time.Now()
 	b.BuildTime = int64(time.Since(start).Seconds())
 	b.Miner = creator
 	next <- b

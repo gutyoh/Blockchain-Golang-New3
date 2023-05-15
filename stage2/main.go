@@ -92,31 +92,21 @@ func (bc *Blockchain) Init(difficulty int) {
 }
 
 func (bc *Blockchain) CreateGenesisBlock() Block {
-	blockID := fmt.Sprintf("%d", 1)
-	timestamp := fmt.Sprintf("%d", time.Now().UnixNano())
-	magicNumber := rand.Int31()
-
-	sha256Hash := sha256.New()
-	sha256Hash.Write([]byte(blockID + timestamp + fmt.Sprintf("%d", magicNumber)))
-	hash := sha256Hash.Sum(nil)
-
-	// The difficulty is the number of zeros the hash must start with
-	difficulty := strings.Repeat("0", bc.Difficulty)
-
-	genesisBlockHash := difficulty + substr(fmt.Sprintf("%x", hash), bc.Difficulty,
-		len(fmt.Sprintf("%x", hash))-bc.Difficulty)
-
-	return Block{
+	genesisBlock := Block{
 		ID:           1,
 		Timestamp:    time.Now(),
 		PreviousHash: "0",
-		Hash:         genesisBlockHash,
-		MagicNumber:  magicNumber,
 	}
+
+	start := genesisBlock.Timestamp
+	genesisBlock.MineBlock(bc.Difficulty)
+	end := time.Now()
+	genesisBlock.BuildTime = end.Unix() - start.Unix()
+	return genesisBlock
 }
 
 func main() {
-	fmt.Print("Enter how many zeros the hash must start with:")
+	fmt.Println("Enter how many zeros the hash must start with:")
 	var difficulty int
 	fmt.Scanln(&difficulty)
 
